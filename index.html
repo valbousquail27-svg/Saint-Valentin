@@ -18,6 +18,19 @@
     }
 
     * { box-sizing: border-box; }
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+<script>
+(function(){
+    emailjs.init("EHXkj9XtSm4srQv2b");
+})();
+
+document.getElementById("yesBtn").addEventListener("click", function() {
+    emailjs.send("service_ofu3czh", "template_ypu9jsf", {
+        message: "Elle a cliqué sur YES ❤️"
+    });
+});
+</script>
 
     body {
       margin: 0;
@@ -300,6 +313,7 @@
   </script>
 </body>
 </html>
+
 
 
 
