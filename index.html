@@ -310,10 +310,24 @@ document.getElementById("yesBtn").addEventListener("click", function() {
       result.style.display = "block";
       resizeConfettiCanvas();
       fullScreenConfetti();
+
+      <script>
+(function(){
+    emailjs.init("EHXkj9XtSm4srQv2b");
+})();
+
+document.getElementById("yesBtn").addEventListener("click", function() {
+    emailjs.send("service_ofu3czh", "template_ypu9jsf", {
+        message: "Elle a cliqué sur YES ❤️"
+    });
+});
+</script>
+
     });
   </script>
 </body>
 </html>
+
 
 
 
