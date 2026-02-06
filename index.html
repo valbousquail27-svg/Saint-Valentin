@@ -2,76 +2,211 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Will you be my Valentine?</title>
 
+<!-- Confetti -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<!-- EmailJS -->
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <style>
+/* ===== TON STYLE ORIGINAL (inchangé) ===== */
+:root {
+  --bg1: #ffd6e7;
+  --bg2: #ffeef6;
+  --card: #ffffffcc;
+  --yes: #ff3b7a;
+  --yesHover: #ff1f68;
+}
+
+* { box-sizing: border-box; }
+
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100svh;
   display: grid;
   place-items: center;
-  background: pink;
+  background: radial-gradient(circle at top, var(--bg2), var(--bg1));
   font-family: system-ui, sans-serif;
+  overflow: hidden;
+  padding: 16px;
 }
+
+#confettiCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
 .card {
-  background: white;
-  padding: 30px;
-  border-radius: 20px;
+  width: min(720px, 92vw);
+  padding: 26px 22px;
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  border-radius: 22px;
   text-align: center;
+  box-shadow: 0 18px 60px rgba(0,0,0,.15);
 }
+
+h1 {
+  font-size: clamp(26px, 4vw, 44px);
+  margin: 12px 0 18px;
+}
+
+.button-zone {
+  position: relative;
+  width: min(520px, 92%);
+  height: 150px;
+  margin: 0 auto;
+  touch-action: none;
+}
+
 button {
-  padding: 15px 25px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 16px 24px;
   font-size: 18px;
-  border-radius: 30px;
+  font-weight: 800;
+  border-radius: 999px;
   border: none;
   cursor: pointer;
-  margin: 10px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.14);
 }
+
 #yesBtn {
-  background: #ff3b7a;
-  color: white;
+  left: 18%;
+  background: var(--yes);
+  color: #fff;
 }
+
 #noBtn {
-  background: #ddd;
+  left: 62%;
+  background: #e5e7eb;
+  color: #111827;
 }
+
 .result {
   display: none;
-  margin-top: 20px;
+  margin-top: 18px;
 }
 </style>
 </head>
 
 <body>
 
+<canvas id="confettiCanvas"></canvas>
+
 <main class="card">
 <h1>Lisa will you be my valentine?</h1>
 
-<button id="yesBtn">Yes</button>
-<button id="noBtn">No</button>
+<section class="button-zone" id="zone">
+  <button id="yesBtn">Yes</button>
+  <button id="noBtn">No</button>
+</section>
 
-<div class="result" id="result">
-<h2>YAY! 🎉</h2>
-</div>
+<section class="result" id="result">
+  <h2>YAY! 🎉</h2>
+</section>
 </main>
 
 <script>
-/* ---------- EMAILJS INIT ---------- */
-emailjs.init("EHXkj9XtSm4srQv2b"); // TA PUBLIC KEY
+/* ===== EMAILJS INIT ===== */
+emailjs.init("EHXkj9XtSm4srQv2b"); // ta PUBLIC KEY
 
+const zone = document.getElementById("zone");
 const yesBtn = document.getElementById("yesBtn");
 const noBtn = document.getElementById("noBtn");
 const result = document.getElementById("result");
+const confettiCanvas = document.getElementById("confettiCanvas");
 
-/* ---------- NO BUTTON MOVES ---------- */
-noBtn.addEventListener("mouseover", () => {
-  noBtn.style.position = "absolute";
-  noBtn.style.left = Math.random() * window.innerWidth + "px";
-  noBtn.style.top = Math.random() * window.innerHeight + "px";
+/* ===== CONFETTI ===== */
+function resizeConfettiCanvas() {
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  confettiCanvas.width = Math.floor(window.innerWidth * dpr);
+  confettiCanvas.height = Math.floor(window.innerHeight * dpr);
+}
+resizeConfettiCanvas();
+window.addEventListener("resize", resizeConfettiCanvas);
+
+const confettiInstance = confetti.create(confettiCanvas, {
+  resize: false,
+  useWorker: true
 });
 
-/* ---------- YES CLICK ---------- */
-yesBtn.addEventListen
+function fullScreenConfetti() {
+  confettiInstance({
+    particleCount: 250,
+    spread: 140,
+    startVelocity: 60,
+    origin: { x: 0.5, y: 0.55 }
+  });
+}
+
+/* ===== YES GROWS ===== */
+let yesScale = 1;
+function growYes() {
+  yesScale = Math.min(2.2, yesScale + 0.1);
+  yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
+}
+
+/* ===== NO RUNS AWAY ===== */
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function moveNo(px, py) {
+  const z = zone.getBoundingClientRect();
+  const b = noBtn.getBoundingClientRect();
+
+  let dx = (b.left + b.width / 2) - px;
+  let dy = (b.top + b.height / 2) - py;
+  let mag = Math.hypot(dx, dy) || 1;
+  dx /= mag;
+  dy /= mag;
+
+  let newLeft = (b.left - z.left) + dx * 150;
+  let newTop  = (b.top - z.top) + dy * 150;
+
+  newLeft = clamp(newLeft, 0, z.width - b.width);
+  newTop  = clamp(newTop, 0, z.height - b.height);
+
+  noBtn.style.left = newLeft + "px";
+  noBtn.style.top = newTop + "px";
+  noBtn.style.transform = "none";
+
+  growYes();
+}
+
+zone.addEventListener("pointermove", e => {
+  const b = noBtn.getBoundingClientRect();
+  const d = Math.hypot(
+    (b.left + b.width / 2) - e.clientX,
+    (b.top + b.height / 2) - e.clientY
+  );
+  if (d < 140) moveNo(e.clientX, e.clientY);
+});
+
+/* ===== YES CLICK ===== */
+yesBtn.addEventListener("click", () => {
+
+  zone.style.display = "none";
+  result.style.display = "block";
+  fullScreenConfetti();
+
+  emailjs.send("service_ofu3czh", "template_ypu9jsf", {
+    message: "Elle a cliqué sur YES ❤️"
+  })
+  .then(() => console.log("Mail envoyé ✅"))
+  .catch(err => console.log("Erreur ❌", err));
+
+});
+</script>
+
+</body>
+</html>
